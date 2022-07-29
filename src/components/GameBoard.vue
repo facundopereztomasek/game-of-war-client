@@ -7,6 +7,7 @@
                 :width="canvasSize"
                 :height="canvasSize"
             ></canvas>
+            <pre>{{ board }}</pre>
         </div>
     </div>
 </template>
@@ -25,7 +26,7 @@ import { useGame } from "@/modules/game";
 export default defineComponent({
     setup() {
         const gameRef = useGame();
-        gameRef.nextStep();
+        // gameRef.nextStep();
 
         onMounted(() => {
             state.boardContext = state.boardCanvas.getContext("2d");
