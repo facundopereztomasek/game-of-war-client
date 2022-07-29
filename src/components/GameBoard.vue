@@ -25,7 +25,6 @@ import { useGame } from "@/modules/game";
 export default defineComponent({
     setup() {
         const gameRef = useGame();
-        gameRef.nextStep();
 
         onMounted(() => {
             state.boardContext = state.boardCanvas.getContext("2d");
@@ -37,6 +36,8 @@ export default defineComponent({
             boardCanvas: null,
             boardContext: null,
         });
+
+        state.canvasSize = state.board.value.width * state.unitSize;
 
         const getMatrixFromBoardState = (board) => {
             return board.state
@@ -56,9 +57,9 @@ export default defineComponent({
             boardContext.clearRect(0, 0, canvasSize, canvasSize);
             boardContext.fillStyle = "black";
 
-            for (let i = 0; i < board.width; i++) {
-                for (let j = 0; j < board.width; j++) {
-                    let color = matrix[i][j] === 1 ? "black" : "white";
+            for (let j = 0; j < board.width; j++) {
+                for (let i = 0; i < board.width; i++) {
+                    let color = matrix[j][i] === 1 ? "black" : "white";
 
                     boardContext.beginPath();
                     boardContext.fillStyle = color;
@@ -80,4 +81,9 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style scoped>
+canvas {
+    width: 100px;
+    height: 100px;
+}
+</style>
