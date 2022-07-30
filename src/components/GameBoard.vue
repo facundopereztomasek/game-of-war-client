@@ -3,6 +3,7 @@
         <h1>Game Board</h1>
         <div>
             <canvas
+                @click="drawHandler"
                 ref="boardCanvas"
                 :width="canvasSize"
                 :height="canvasSize"
@@ -25,6 +26,8 @@ import { useGame } from "@/modules/game";
 export default defineComponent({
     setup() {
         const gameRef = useGame();
+        // gameRef.generateRandomBoard(2, 50, 0);
+        const colors = { A: "cyan", B: "red", C: "blue" };
 
         onMounted(() => {
             state.boardContext = state.boardCanvas.getContext("2d");
@@ -32,7 +35,8 @@ export default defineComponent({
 
         const state = reactive({
             board: computed(() => gameRef.board),
-            unitSize: 10,
+            draw: computed(() => gameRef.draw),
+            unitSize: 50,
             boardCanvas: null,
             boardContext: null,
         });
@@ -42,7 +46,7 @@ export default defineComponent({
         const getMatrixFromBoardState = (board) => {
             return board.state
                 .match(new RegExp(`.{1,${board.width}}`, "g"))
-                .map((_) => _.split("").map((_) => Number(_)));
+                .map((_) => _.split(""));
         };
 
         watchEffect(() => {
@@ -55,11 +59,10 @@ export default defineComponent({
             const matrix = getMatrixFromBoardState(board);
 
             boardContext.clearRect(0, 0, canvasSize, canvasSize);
-            boardContext.fillStyle = "black";
 
             for (let j = 0; j < board.width; j++) {
                 for (let i = 0; i < board.width; i++) {
-                    let color = matrix[j][i] === 1 ? "black" : "white";
+                    let color = colors[matrix[j][i]] || "black";
 
                     boardContext.beginPath();
                     boardContext.fillStyle = color;
@@ -70,12 +73,31 @@ export default defineComponent({
                         unitSize
                     );
                     boardContext.fill();
+                    boardContext.fillStyle = "white";
+                    boardContext.font = "15px Arial";
+                    boardContext.fillText(
+                        `${i},${j}`,
+                        i * unitSize + 5,
+                        j * unitSize + 25
+                    );
                 }
             }
         });
 
+        const drawHandler = (e) => {
+            const x = e.clientX - state.boardCanvas.offsetLeft;
+            const y = e.clientY - state.boardCanvas.offsetTop;
+            const unitX = Math.floor(x / state.unitSize);
+            const unitY = Math.floor(y / state.unitSize);
+            const matrix = getMatrixFromBoardState(state.board.value);
+            console.log(matrix);
+            matrix[unitY][unitX] = state.draw.value.team;
+            state.board.value.state = matrix.flat().join("");
+        };
+
         return {
             ...toRefs(state),
+            drawHandler,
         };
     },
 });
@@ -83,7 +105,8 @@ export default defineComponent({
 
 <style scoped>
 canvas {
-    width: 100px;
-    height: 100px;
+    width: 600px;
+    height: 600px;
+    cursor: crosshair;
 }
 </style>
