@@ -5,8 +5,8 @@
             <canvas
                 @click="drawHandler"
                 ref="boardCanvas"
-                :width="canvasSize"
-                :height="canvasSize"
+                :width="`${canvasSize}`"
+                :height="`${canvasSize}`"
             ></canvas>
         </div>
     </div>
@@ -19,80 +19,54 @@ import {
     onMounted,
     reactive,
     toRefs,
-    watchEffect,
+    watch,
 } from "vue";
 import { useGame } from "@/modules/game";
+import { useCanvas } from "@/modules/canvas";
 
 export default defineComponent({
     setup() {
+        const cellWidth = 50;
+        const cellsByRow = 50;
         const gameRef = useGame();
-        // gameRef.generateRandomBoard(2, 50, 0);
-        const colors = { A: "cyan", B: "red", C: "blue" };
+        const canvasRef = useCanvas();
+        // gameRef.generateRandomBoard(5, cellsByRow, 0);
 
         onMounted(() => {
-            state.boardContext = state.boardCanvas.getContext("2d");
+            canvasRef.init(state.boardCanvas, cellWidth, cellsByRow);
+            canvasRef.context = state.boardCanvas.getContext("2d");
+            requestAnimationFrame(updateCanvas);
         });
 
         const state = reactive({
             board: computed(() => gameRef.board),
             draw: computed(() => gameRef.draw),
-            unitSize: 50,
+            showText: computed(() => gameRef.showText),
+            canvasSize: computed(() => canvasRef.size),
             boardCanvas: null,
-            boardContext: null,
         });
 
-        state.canvasSize = state.board.value.width * state.unitSize;
-
-        const getMatrixFromBoardState = (board) => {
-            return board.state
-                .match(new RegExp(`.{1,${board.width}}`, "g"))
-                .map((_) => _.split(""));
-        };
-
-        watchEffect(() => {
-            const boardContext = state.boardContext;
+        const updateCanvas = () => {
+            if (!canvasRef.initialized.value) return;
             const board = state.board?.value;
-            const unitSize = state.unitSize;
-            const canvasSize = board.width * unitSize;
 
-            if (!boardContext) return;
-            const matrix = getMatrixFromBoardState(board);
-
-            boardContext.clearRect(0, 0, canvasSize, canvasSize);
+            const matrix = gameRef.getMatrixFromBoardState();
 
             for (let j = 0; j < board.width; j++) {
                 for (let i = 0; i < board.width; i++) {
-                    let color = colors[matrix[j][i]] || "black";
-
-                    boardContext.beginPath();
-                    boardContext.fillStyle = color;
-                    boardContext.rect(
-                        i * unitSize,
-                        j * unitSize,
-                        unitSize,
-                        unitSize
-                    );
-                    boardContext.fill();
-                    boardContext.fillStyle = "white";
-                    boardContext.font = "15px Arial";
-                    boardContext.fillText(
-                        `${i},${j}`,
-                        i * unitSize + 5,
-                        j * unitSize + 25
-                    );
+                    canvasRef.putCell(i, j, matrix[j][i], state.showText.value);
                 }
             }
-        });
+        };
+
+        watch(() => state.board.value.state, updateCanvas);
 
         const drawHandler = (e) => {
-            const x = e.clientX - state.boardCanvas.offsetLeft;
-            const y = e.clientY - state.boardCanvas.offsetTop;
-            const unitX = Math.floor(x / state.unitSize);
-            const unitY = Math.floor(y / state.unitSize);
-            const matrix = getMatrixFromBoardState(state.board.value);
-            console.log(matrix);
-            matrix[unitY][unitX] = state.draw.value.team;
-            state.board.value.state = matrix.flat().join("");
+            const x = e.clientX;
+            const y = e.clientY;
+
+            const { cellX, cellY } = canvasRef.getCellFromPoint(x, y);
+            gameRef.updateCell(cellX, cellY);
         };
 
         return {
@@ -105,8 +79,8 @@ export default defineComponent({
 
 <style scoped>
 canvas {
-    width: 600px;
-    height: 600px;
     cursor: crosshair;
+    width: 50%;
+    aspect-ratio: 1;
 }
 </style>

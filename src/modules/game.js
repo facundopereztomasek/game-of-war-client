@@ -3,15 +3,16 @@ import { reactive, toRefs } from "vue";
 
 const state = reactive({
     board: {
-        width: 12,
+        width: 50,
         // state: "00000000000000000A0000000A0000AAA0000000000000000",
         // state: `00000000000000A000000000000A000000000AAA0000000000000000000000000000000000000000000000000000000000000000BBB000000000B000000000000B00000000000000`,
-        state: `000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000`,
-        teams: ["A", "B", "C"],
+        state: "0".repeat(50 * 50),
+        teams: "ABCDEFGHIJ".split(""),
     },
     draw: {
         team: "A",
     },
+    showText: false,
 });
 
 export function useGame() {
@@ -26,28 +27,40 @@ export function useGame() {
     const generateRandomBoard = (
         teamsAmount = 1,
         width = 20,
-        population = 10
+        population = 3
     ) => {
+        state.board.width = width;
         const board = [];
-        const teams = [...Array(teamsAmount).keys()].map((_) =>
+        const teams = [...Array(Number(teamsAmount)).keys()].map((_) =>
             String.fromCharCode(_ + 65)
         );
 
         for (let j = 0; j < width; j++) {
             board[j] = [];
             for (let i = 0; i < width; i++) {
-                const living = Math.floor(Math.random() * population) === 0;
+                const living = Math.ceil(Math.random() * population) === 1;
                 const [team] = teams.sort(() => Math.random() - 0.5);
                 board[j][i] = living ? team : "0";
             }
         }
         state.board.width = width;
-        console.log(board);
-        state.board.state = board.join("");
+        state.board.state = board.flat().join("");
     };
 
     const setDrawTeam = (team) => {
         state.draw.team = team;
+    };
+
+    const getMatrixFromBoardState = () => {
+        return state.board.state
+            .match(new RegExp(`.{1,${state.board.width}}`, "g"))
+            .map((_) => _.split(""));
+    };
+
+    const updateCell = (cellX, cellY) => {
+        const matrix = getMatrixFromBoardState();
+        matrix[cellY][cellX] = state.draw.team;
+        state.board.state = matrix.flat().join("");
     };
 
     return {
@@ -55,5 +68,7 @@ export function useGame() {
         nextStep,
         generateRandomBoard,
         setDrawTeam,
+        getMatrixFromBoardState,
+        updateCell,
     };
 }
