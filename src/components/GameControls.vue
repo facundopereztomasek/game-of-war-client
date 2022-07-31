@@ -34,8 +34,8 @@ export default defineComponent({
 
         const generateRandomBoardHandler = () => {
             const { teams, size, population } = state;
-            canvasRef.updateCellWidth(size);
-            canvasRef.size = Number(size) * canvasRef.cellWidth;
+            canvasRef.updateCanvasSize(size);
+
             gameRef.generateRandomBoard(teams, size, population);
         };
         const nextStepHandler = () => {

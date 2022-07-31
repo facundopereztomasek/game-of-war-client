@@ -31,9 +31,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ## To Do
 
 -   Nice UI
--   Teams
 -   Automatic play
--   Random patterns
 
 ## Nice to have
 
