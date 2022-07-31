@@ -33,21 +33,20 @@ export function useGame() {
     };
 
     const _neighborsFree = (board, x, y, team) => {
-        const padding = 2;
+        const padding = 1;
         const sliceFromY = Math.max(y - padding, 0);
         const sliceFromX = Math.max(x - padding, 0);
         const sliceToY = Math.min(y + 1 + padding, board.length);
         const sliceToX = Math.min(x + 1 + padding, board[0].length);
-
         const focusedMatrix = board
             .slice(sliceFromY, sliceToY)
-            .map((row) => row.slice(sliceFromX, sliceToX))
-            .flat();
+            .map((row) => row.slice(sliceFromX, sliceToX));
+
+        const flattenMatrix = focusedMatrix.flat();
 
         const noNeighbors =
-            focusedMatrix.find((cell) => cell !== team && cell !== "0") ===
+            flattenMatrix.find((cell) => cell !== team && cell !== "0") ===
             undefined;
-        console.log(focusedMatrix, noNeighbors);
 
         return noNeighbors;
     };
@@ -60,15 +59,22 @@ export function useGame() {
         state.board.width = width;
         const board = [];
 
+        const positions = [];
         for (let j = 0; j < width; j++) {
             board[j] = [];
             for (let i = 0; i < width; i++) {
-                const newCell = _randomCell(teamsAmount, population);
-                board[j][i] = _neighborsFree(board, i, j, newCell)
-                    ? newCell
-                    : "0";
+                board[j][i] = "0";
+                positions.push([i, j]);
             }
         }
+
+        positions.sort(() => Math.random() - 0.5);
+
+        for (let [i, j] of positions) {
+            const newCell = _randomCell(teamsAmount, population);
+            board[j][i] = _neighborsFree(board, i, j, newCell) ? newCell : "0";
+        }
+
         state.board.width = width;
         state.board.state = board.flat().join("");
     };

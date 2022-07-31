@@ -6,7 +6,6 @@ const state = reactive({
     top: null,
     left: null,
     context: null,
-    cellWidth: null,
     size: null,
     initialized: false,
 });
@@ -25,33 +24,28 @@ export function useCanvas() {
         J: "#FFC300",
     };
 
-    const init = (element, cellWidth, cellsByRow) => {
-        const setParams = () => {
-            state.cellWidth = cellWidth;
-            state.context = element.getContext("2d");
-            state.left = element.offsetLeft;
-            state.top = element.offsetTop;
-            state.width = element.clientWidth;
-            state.height = element.clientHeight;
-            state.size = cellWidth * cellsByRow;
-            state.initialized = true;
-        };
-
-        document.body.onresize = setParams;
-        setParams();
+    const init = (element, size) => {
+        state.context = element.getContext("2d");
+        state.left = element.offsetLeft;
+        state.top = element.offsetTop;
+        state.width = element.clientWidth;
+        state.height = element.clientHeight;
+        state.size = size;
+        state.initialized = true;
     };
 
-    const updateCellWidth = (width) => (state.cellWidth = state.size / width);
+    const updateCanvasSize = (size) => {
+        state.size = size;
+    };
 
     const putCell = (x, y, team, text = false) => {
         if (!state.context) return;
         let color = colors[team] || "#111111";
         const context = state.context;
-        const cellWidth = state.cellWidth;
-
+        const resolution = state.width / state.size;
         context.beginPath();
         context.fillStyle = color;
-        context.rect(x * cellWidth, y * cellWidth, cellWidth, cellWidth);
+        context.rect(x * resolution, y * resolution, resolution, resolution);
         context.fill();
 
         if (text) {
@@ -59,18 +53,17 @@ export function useCanvas() {
             context.font = "15px Arial";
             context.fillText(
                 `${x},${y}`,
-                x * cellWidth + 5,
-                y * cellWidth + 25
+                x * resolution + 5,
+                y * resolution + 25
             );
         }
     };
 
     const getCellFromPoint = (x, y) => {
-        const dx = state.width / state.cellWidth;
-        const dy = state.height / state.cellWidth;
+        const [dx, dy] = [x - state.left, y - state.top];
         return {
-            cellX: Math.floor((x - state.left) / dx),
-            cellY: Math.floor((y - state.top) / dy),
+            cellX: Math.floor((dx * state.size) / state.width),
+            cellY: Math.floor((dy * state.size) / state.height),
         };
     };
 
@@ -78,7 +71,7 @@ export function useCanvas() {
         ...toRefs(state),
         putCell,
         init,
-        updateCellWidth,
+        updateCanvasSize,
         getCellFromPoint,
     };
 }

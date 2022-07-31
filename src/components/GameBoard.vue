@@ -26,13 +26,12 @@ import { useCanvas } from "@/modules/canvas";
 
 export default defineComponent({
     setup() {
-        const cellWidth = 50;
-        const cellsByRow = 50;
+        const size = 50;
         const gameRef = useGame();
         const canvasRef = useCanvas();
 
         onMounted(() => {
-            canvasRef.init(state.boardCanvas, cellWidth, cellsByRow);
+            canvasRef.init(state.boardCanvas, size);
             canvasRef.context = state.boardCanvas.getContext("2d");
             requestAnimationFrame(updateCanvas);
         });
@@ -41,7 +40,7 @@ export default defineComponent({
             board: computed(() => gameRef.board),
             draw: computed(() => gameRef.draw),
             showText: computed(() => gameRef.showText),
-            canvasSize: computed(() => canvasRef.size),
+            canvasSize: computed(() => canvasRef.width.value),
             boardCanvas: null,
         });
 
@@ -79,7 +78,7 @@ export default defineComponent({
 <style scoped>
 canvas {
     cursor: crosshair;
-    width: 50%;
+    width: 600px;
     aspect-ratio: 1;
 }
 </style>
