@@ -30,7 +30,6 @@ export default defineComponent({
         const cellsByRow = 50;
         const gameRef = useGame();
         const canvasRef = useCanvas();
-        // gameRef.generateRandomBoard(5, cellsByRow, 0);
 
         onMounted(() => {
             canvasRef.init(state.boardCanvas, cellWidth, cellsByRow);
