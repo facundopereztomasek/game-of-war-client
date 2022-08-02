@@ -57,22 +57,28 @@ export function useGame() {
         population = 1
     ) => {
         state.board.width = width;
-        const board = [];
+        const board = getMatrixFromBoardState();
 
         const positions = [];
         for (let j = 0; j < width; j++) {
-            board[j] = [];
+            board[j] = board[j] || [];
             for (let i = 0; i < width; i++) {
-                board[j][i] = "0";
-                positions.push([i, j]);
+                board[j][i] = board[j][i] || "0";
+                if (board[j][i] === "0") positions.push([i, j]);
             }
         }
 
         positions.sort(() => Math.random() - 0.5);
 
+        let newCell;
+        let couldCreate = true;
+
         for (let [i, j] of positions) {
-            const newCell = _randomCell(teamsAmount, population);
-            board[j][i] = _neighborsFree(board, i, j, newCell) ? newCell : "0";
+            newCell = couldCreate
+                ? _randomCell(teamsAmount, population)
+                : newCell;
+            couldCreate = _neighborsFree(board, i, j, newCell);
+            board[j][i] = couldCreate ? newCell : board[j][i];
         }
 
         state.board.width = width;

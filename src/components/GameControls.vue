@@ -27,7 +27,7 @@ export default defineComponent({
         const state = reactive({
             autorun: false,
             showText: false,
-            teams: 3,
+            teams: 10,
             size: 50,
             population: 1,
         });
